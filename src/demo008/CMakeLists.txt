@@ -1,0 +1,19 @@
+PROJECT(demo008)
+
+FIND_PACKAGE(glfw3 REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+
+SET(ROOT_DIR "../..")
+
+SET(SOURCE_FILES main.cpp ${ROOT_DIR}/lib/glad.c ${ROOT_DIR}/src/util/shader.cpp)
+
+ADD_EXECUTABLE(demo008 ${SOURCE_FILES})
+
+TARGET_INCLUDE_DIRECTORIES(demo008
+    PUBLIC 
+        ${ROOT_DIR}/include
+        ${ROOT_DIR}/src
+)
+
+TARGET_LINK_LIBRARIES(demo008 glfw)
+TARGET_LINK_LIBRARIES(demo008 OpenGL::GL)
