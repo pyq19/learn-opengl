@@ -7,6 +7,7 @@
 - include 头文件
 - lib 库文件
 - src 源码
+  - demo009 着色器 - vertices 数组包括 rgba
   - demo008 着色器 - 三角形颜色随时间变化
   - demo007 着色器
   - demo006 练习 3: 创建两个着色器程序, 画两个不同颜色的三角形
