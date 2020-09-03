@@ -7,6 +7,7 @@
 - include 头文件
 - lib 库文件
 - src 源码
+  - demo011 纹理单元
   - demo010 纹理
   - demo009 着色器 - vertices 数组包括 rgba
   - demo008 着色器 - 三角形颜色随时间变化
