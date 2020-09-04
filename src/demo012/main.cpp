@@ -1,4 +1,7 @@
-// 两个纹理混合
+// GLM 变换
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -34,11 +37,11 @@ int main()
     glViewport(0, 0, 800, 600);
 
     float vertices[] = {
-        // ---- 位置 ----  ----- 颜色 ----   --- 纹理坐标 ---
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // 右上
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // 右下
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // 左下
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // 左上
+        // ---- 位置 ----   --- 纹理坐标 ---
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,   // 右上
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f,  // 右下
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // 左下
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f   // 左上
     };
     unsigned int indices[] = {
         0, 1, 3, // 第一个三角形
@@ -55,16 +58,13 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 位置属性
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // 颜色属性
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
     // 纹理坐标
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
-    Shader shader = Shader("/home/pyq/Codes/learn-opengl/src/demo011/shader/vs.glsl", "/home/pyq/Codes/learn-opengl/src/demo011/shader/fs.glsl");
+    Shader shader = Shader("/home/pyq/Codes/learn-opengl/src/demo012/shader/vs.glsl", "/home/pyq/Codes/learn-opengl/src/demo012/shader/fs.glsl");
 
     // 纹理1
     unsigned int texture1;
@@ -132,9 +132,18 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        // 创建变换矩阵
+        glm::mat4 transform = glm::mat4(1.0f); // 初始化单位向量
+        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // 把变换矩阵传递给着色器
+        shader.use();
+        unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
         // 绑定纹理
         // glBindTexture(GL_TEXTURE_2D, texture);
-        shader.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
