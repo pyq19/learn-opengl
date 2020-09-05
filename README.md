@@ -7,6 +7,7 @@
 - include 头文件
 - lib 库文件
 - src 源码
+  - demo015 摄像机 - 自由移动
   - demo014 摄像机 - Look At
   - demo013 坐标系统
   - demo012 引入 GLM 0.9.9.9
