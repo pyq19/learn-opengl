@@ -1,4 +1,4 @@
-// 摄像机 - 视角移动 鼠标输入
+// 摄像机 - 鼠标滚轮缩放 fov
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,12 +17,13 @@ const unsigned int SCR_HEIGHT = 600;
 // 鼠标是否第一次移入窗口
 bool isFirstMouse = true;
 // 存储上一帧的鼠标位置
-float lastX = 400, lastY = 300;
-
+float lastX = 400.0f, lastY = 300.0f;
+// 视野 field of view
+float fov = 45.0f;
 // 俯仰角
 float pitch = 0.0f;
 // 偏航角
-float yaw = -90.0f;
+float yaw = -90.0f; // 不太理解
 
 // 当前帧与上一帧的时间差
 float deltaTime = 0.0f;
@@ -221,7 +222,8 @@ int main()
 
         // 将特定范围内的坐标转化到标准化设备坐标系的过程（而且它很容易被映射到2D观察空间坐标）被称之为投影(Projection)，因为使用投影矩阵能将3D坐标投影(Project)到很容易映射到2D的标准化设备坐标系中。
         // 为了将顶点坐标从观察变换到裁剪空间，我们需要定义一个投影矩阵(Projection Matrix)，它指定了一个范围的坐标，比如在每个维度上的-1000到1000。投影矩阵接着会将在这个指定的范围内的坐标变换为标准化设备坐标的范围(-1.0, 1.0)。
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
 
         glBindVertexArray(VAO);
@@ -320,4 +322,10 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
+    if (fov >= 1.0f && fov <= 45.0f)
+        fov -= yoffset;
+    if (fov <= 1.0f)
+        fov = 1.0f;
+    if (fov >= 45.0f)
+        fov = 45.0f;
 }
