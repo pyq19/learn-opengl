@@ -14,8 +14,25 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// 鼠标是否第一次移入窗口
+bool isFirstMouse = true;
+// 存储上一帧的鼠标位置
+float lastX = 400, lastY = 300;
+
+// 俯仰角
+float pitch = 0.0f;
+// 偏航角
+float yaw = -90.0f;
+
+// 当前帧与上一帧的时间差
+float deltaTime = 0.0f;
+// 上一帧的时间
+float lastFrame = 0.0f;
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -36,6 +53,14 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // 绑定鼠标位置回调函数
+    glfwSetCursorPosCallback(window, mouse_callback);
+    // 绑定鼠标滚轮回调函数
+    glfwSetScrollCallback(window, scroll_callback);
+    // 捕捉鼠标 无论怎么移动鼠标都不会现实
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -175,6 +200,11 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 指定 DEPTH_BUFFER_BIT 位来清除深度缓冲
@@ -185,10 +215,6 @@ int main()
 
         shader.use();
 
-        // 创建一个看着(Look at)给定目标的观察矩阵
-        // 参数1: 摄像机位置
-        // 参数2: 目标位置
-        // 参数3: 世界空间中的上向量的向量
         glm::mat4 view = glm::mat4(1.0f);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         shader.setMat4("view", view);
@@ -234,8 +260,12 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    float cameraSpeed = 1.0f; // adjust accordingly
+    // 为了让两帧之间移动平滑, 乘上 deltaTime 时间差
+    float cameraSpeed = 3.5f * deltaTime;
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -244,4 +274,50 @@ void processInput(GLFWwindow *window)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+    // std::cout << xpos << "--" << ypos << std::endl;
+
+    // 这个 bool 变量初始时是 true
+    if (isFirstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        isFirstMouse = false;
+    }
+    // 计算当前帧和上一帧鼠标位置的偏移量
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // 这里取反没太明白.. 解释说因为 y 坐标是从底部往顶部依次增大的
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.05f; // 灵敏度
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    pitch += yoffset; // 俯仰角
+    yaw += xoffset;   // 偏航角
+
+    // 对俯仰角 不能让用户看到高于 89 度的地方
+    // 保证用户只能看到天空或脚下
+    // 偏航角没有限制, 不限制用户水平旋转
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.f)
+        pitch = -89.0f;
+
+    // 通过俯仰角和偏航角来计算得到真正的方向向量
+    glm::vec3 front = glm::vec3(1.0f);
+    front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+    front.y = sin(glm::radians(pitch));
+    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+    cameraFront = glm::normalize(front);
+
+    // std::cout << front.x << "--" << front.y << "--" << front.z << std::endl;
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
 }
