@@ -29,3 +29,4 @@
 ## 参考资料
 
 - [LearnOpenGL CN](https://learnopengl-cn.github.io)
+- [Linux(Ubuntu) OpenGL 开发环境](https://blog.impyq.com/post/2020/08/28/linuxubuntu-opengl-%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/)
